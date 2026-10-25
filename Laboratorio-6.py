@@ -18,12 +18,7 @@ def borrar_valores_sistema():
         entrada[1].delete(0, tk.END)
 
 def valores_prueba_sistema():
-    valores_matriz = [
-        [2, 2, 1, -1, 5], 
-        [2, -2, 6, -4, 0], 
-        [2, 2, 1, 1, 13], 
-        [1, 5, -4, -2, -9]
-    ]
+    valores_matriz = [[2, 2, 1, -1, 5], [2, -2, 6, -4, 0], [2, 2, 1, 1, 13], [1, 5, -4, -2, -9]]
     for i in range(4):      
         for j in range(4): 
             indice_x = j * 4 + i
@@ -39,6 +34,19 @@ def calcular_derivada_primera():
 def calcular_raiz():
     print("Calcular raíz")
 
+def alternar_condicion_raiz():
+    if parada_seleccionada.get() == "εs (%):":
+        entrada_es.config(state="normal")
+        entrada_cifras.delete(0, tk.END)
+        entrada_cifras.config(state="readonly")
+    else:
+        entrada_es.delete(0, tk.END)
+        entrada_es.config(state="readonly")
+        entrada_cifras.config(state="normal")
+
+def metodo_biseccion():
+    print("Método de bisección")
+
 def borrar_coeficientes():                                           
     for entrada in entradas:
         entrada.delete(0, tk.END)
@@ -51,8 +59,8 @@ def valores_prueba():
 
 ventana = tk.Tk()                                                  
 ventana.title("Laboratorio VI.1 - Cálculo numérico")   
-ventana.geometry("650x700")
-marco_principal = tk.Frame(ventana, padx=10, pady=10)                                       
+ventana.geometry("750x700")
+marco_principal = tk.Frame(ventana, padx=5, pady=5)                                       
 marco_principal.pack()
 titulo = tk.Label(marco_principal,text="Laboratorio VI.1", font=("Time new roman", 16, "bold"))
 titulo.grid(row=0, column=0)
@@ -84,7 +92,7 @@ marco_calculo_raiz.grid(row=4, column=0, pady=(5, 5), sticky="we")
 metodos = ["Bisección", "Newton-Raphson", "Secante"]
 metodo_seleccionado = tk.StringVar(value=metodos[0]) 
 titulo_metodo = tk.Label(marco_calculo_raiz, text="Método:", font=("Times New Roman", 9))
-titulo_metodo.grid(row=0, column=0, padx=(0, 10))
+titulo_metodo.grid(row=0, column=0, padx=(0, 5))
 for i in range(3):
     boton_metodo = tk.Radiobutton(marco_calculo_raiz, text=metodos[i], variable=metodo_seleccionado, value=metodos[i],font=("Times New Roman", 9))
     boton_metodo.grid(row=0, column=i+1, padx=(0, 2))
@@ -102,6 +110,22 @@ for i in range(4):
     entry.grid(row=i, column=8, sticky="we", pady=2)
 boton_calcular_raiz = tk.Button(marco_calculo_raiz, text="Calcular", font=("Times New Roman", 9), width=12, command = calcular_raiz)
 boton_calcular_raiz.grid(row=2, column=6, padx=5, pady=2)
+
+condiciones_parada = ["εs (%):", "Cifras signif.:"]
+parada_seleccionada = tk.StringVar(value=condiciones_parada[0])
+boton_error_aproximado_relativo = tk.Radiobutton(marco_calculo_raiz, text=condiciones_parada[0], variable=parada_seleccionada, value=condiciones_parada[0], font=("Times New Roman", 9), command=alternar_condicion_raiz)
+boton_error_aproximado_relativo.grid(row=3, column=0, padx=(0, 2), sticky="e")
+entrada_es = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+entrada_es.grid(row=3, column=1, padx=(0, 10))
+boton_cifras_significativas = tk.Radiobutton(marco_calculo_raiz, text=condiciones_parada[1], variable=parada_seleccionada, value=condiciones_parada[1], font=("Times New Roman", 9), command=alternar_condicion_raiz)
+boton_cifras_significativas.grid(row=3, column=2, padx=(0, 2), sticky="e")
+entrada_cifras = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+entrada_cifras.config(state="readonly")
+entrada_cifras.grid(row=3, column=3, padx=(0, 5))
+titulo_max_iteraciones = tk.Label(marco_calculo_raiz, text="Máx. iter.:", font=("Times New Roman", 9))
+titulo_max_iteraciones.grid(row=3, column=4, padx=(0, 2), sticky="e")
+entrada_max_iter = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+entrada_max_iter.grid(row=3, column=5, padx=(0, 2))
 
 titulo_derivada = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)
 titulo_derivada.grid(row=5, column=0, sticky="we", pady=(5, 0))
@@ -159,7 +183,7 @@ boton_valores_prueba_sistema.grid(row=4, column=6, padx=(10, 2), pady=(2, 0))
 titulos_resultados_sistema = ["x1 =", "x2 =", "x3 =", "x4 ="]
 for i in range(0, 4):
     titulo_resultado = tk.Label(marco_entradas_sistema, text=titulos_resultados_sistema[i], font=("Times New Roman", 9))
-    titulo_resultado.grid(row=i, column=7, padx=(10, 2), pady=(2, 2))
+    titulo_resultado.grid(row=i, column=7, padx=(50, 2), pady=(2, 2))
     resultado_sistema = tk.Entry(marco_entradas_sistema, state="readonly", width=15)
     resultado_sistema.grid(row=i, column=8, padx=(5, 5), pady=(2, 2))
 
