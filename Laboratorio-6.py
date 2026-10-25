@@ -6,12 +6,38 @@ import tkinter as tk                                                #Librerías
 from tkinter import messagebox
 import math
 
+def calcular_integral_definida():
+    print("Calcular integral definida")
+
+def calcular_sistema():
+    print("Calcular sistema de ecuaciones")
+
+def borrar_valores_sistema():
+    for entrada in entradas_sistema:
+        entrada[0].delete(0, tk.END)
+        entrada[1].delete(0, tk.END)
+
+def valores_prueba_sistema():
+    valores_matriz = [
+        [2, 2, 1, -1, 5], 
+        [2, -2, 6, -4, 0], 
+        [2, 2, 1, 1, 13], 
+        [1, 5, -4, -2, -9]
+    ]
+    for i in range(4):      
+        for j in range(4): 
+            indice_x = j * 4 + i
+            entradas_sistema[indice_x][0].delete(0, tk.END)
+            entradas_sistema[indice_x][0].insert(0, str(valores_matriz[i][j]))
+        indice_b = 12 + i
+        entradas_sistema[indice_b][1].delete(0, tk.END)
+        entradas_sistema[indice_b][1].insert(0, str(valores_matriz[i][4]))
+
 def calcular_derivada_primera():
     print("Calcular derivada primera")
 
 def calcular_raiz():
     print("Calcular raíz")
-
 
 def borrar_coeficientes():                                           
     for entrada in entradas:
@@ -105,6 +131,7 @@ titulo_calculo_resolucion_sistema.pack(anchor="w")
 marco_entradas_sistema = tk.Frame(marco_principal)
 marco_entradas_sistema.grid(row=8, column=0, sticky="we", pady=(5, 5))
 titulos_sistema = ["x1", "x2", "x3", "x4"]
+entradas_sistema = []
 for i in range(4):
     titulo = tk.Label(marco_entradas_sistema, text=titulos_sistema[i], font=("Times New Roman", 9))
     titulo.grid(row=0, column=i, padx=(5, 5))
@@ -115,7 +142,51 @@ for i in range(4):
         separacion.grid(row=j+1, column=4, padx=(5, 5))
         entrada_resultado = tk.Entry(marco_entradas_sistema, width=8, justify="center")
         entrada_resultado.grid(row=j+1, column=5, padx=(5, 5), pady=(2, 2))
+        entradas_sistema.append((entrada_matriz, entrada_resultado))
 titulo_resultado_sistema = tk.Label(marco_entradas_sistema, text="b", font=("Times New Roman", 9))
 titulo_resultado_sistema.grid(row=0, column=5, padx=(5, 5))
+titulos_pivoteos = ["Sin pivoteo", "Con pivoteo parcial"]
+pivoteo_seleccionado = tk.StringVar(value=titulos_pivoteos[0])
+for i in range(2):
+    boton_pivoteo = tk.Radiobutton(marco_entradas_sistema, text=titulos_pivoteos[i], variable=pivoteo_seleccionado, value=titulos_pivoteos[i], font=("Times New Roman", 9))
+    boton_pivoteo.grid(row=i, column=6, padx=(10, 2), pady=(2, 0))
+boton_calcular_sistema = tk.Button(marco_entradas_sistema, text="Calcular", font=("Times New Roman", 9), width=12, command=calcular_sistema)
+boton_calcular_sistema.grid(row=2, column=6, padx=(10, 2), pady=(2, 0))
+boton_borrar_sistema = tk.Button(marco_entradas_sistema, text="Borrar valores", font=("Times New Roman", 9), width=12, command=borrar_valores_sistema)
+boton_borrar_sistema.grid(row=3, column=6, padx=(10, 2), pady=(2, 0))
+boton_valores_prueba_sistema = tk.Button(marco_entradas_sistema, text="Valores de prueba", font=("Times New Roman", 9), width=12, command=valores_prueba_sistema)
+boton_valores_prueba_sistema.grid(row=4, column=6, padx=(10, 2), pady=(2, 0))
+titulos_resultados_sistema = ["x1 =", "x2 =", "x3 =", "x4 ="]
+for i in range(0, 4):
+    titulo_resultado = tk.Label(marco_entradas_sistema, text=titulos_resultados_sistema[i], font=("Times New Roman", 9))
+    titulo_resultado.grid(row=i, column=7, padx=(10, 2), pady=(2, 2))
+    resultado_sistema = tk.Entry(marco_entradas_sistema, state="readonly", width=15)
+    resultado_sistema.grid(row=i, column=8, padx=(5, 5), pady=(2, 2))
 
+titulo_calculo_integral_definida = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)
+titulo_calculo_integral_definida.grid(row=9, column=0, sticky="we", pady=(5, 0))
+titulo_texto_calculo_integral_definida = tk.Label(titulo_calculo_integral_definida, text="Cálculo de la integral definida (Simpson 1/3 compuesta)", font=("Times New Roman", 12, "bold"))
+titulo_texto_calculo_integral_definida.pack(anchor="w")
+marco_entradas_integral = tk.Frame(marco_principal)
+marco_entradas_integral.grid(row=10, column=0, sticky="we", pady=(5, 5))
+titulo_intervalo_integracion = tk.Label(marco_entradas_integral, text="Intervalo de integración:", font=("Times New Roman", 9))
+titulo_intervalo_integracion.grid(row=0, column=0, sticky="e", padx=(25, 5))
+titulo_a = tk.Label(marco_entradas_integral, text="a:", font=("Times New Roman", 9))
+titulo_a.grid(row=0, column=1)
+entrada_a = tk.Entry(marco_entradas_integral, width=10, justify="center")
+entrada_a.grid(row=0, column=2, padx=(2, 10))
+titulo_b = tk.Label(marco_entradas_integral, text="b:", font=("Times New Roman", 9))
+titulo_b.grid(row=0, column=3, padx=(10, 2))
+entrada_b = tk.Entry(marco_entradas_integral, width=10, justify="center")
+entrada_b.grid(row=0, column=4, padx=(2, 10))
+titulo_cantidad_subintervalos = tk.Label(marco_entradas_integral, text="Cantidad de subintervalos (par):", font=("Times New Roman", 9))
+titulo_cantidad_subintervalos.grid(row=1, column=0, columnspan=2, sticky="e", padx=(0, 5), pady=(5, 0))
+entrada_cantidad_subintervalos = tk.Entry(marco_entradas_integral, width=10, justify="center")
+entrada_cantidad_subintervalos.grid(row=1, column=2, sticky="w", padx=(2, 10), pady=(5, 0))
+boton_calcular_integral = tk.Button(marco_entradas_integral, text="Calcular", font=("Times New Roman", 9), width=10, command=calcular_integral_definida)
+boton_calcular_integral.grid(row=0, column=5, padx=(20, 10))
+titulo_resultado_integral = tk.Label(marco_entradas_integral, text="Integral definida:", font=("Times New Roman", 9))
+titulo_resultado_integral.grid(row=0, column=6, padx=(10, 2))
+resultado_integral = tk.Entry(marco_entradas_integral, width=12, state="readonly")
+resultado_integral.grid(row=0, column=7, padx=(2, 10))
 ventana.mainloop()              
