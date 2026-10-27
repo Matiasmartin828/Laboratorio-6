@@ -32,7 +32,129 @@ def calcular_derivada_primera():
     print("Calcular derivada primera")
 
 def calcular_raiz():
-    print("Calcular raíz")
+    try:
+        iteraciones_maximas = int(entrada_max_iter.get())
+        if parada_seleccionada.get() == "εs (%):":
+            error_relativo = float(entrada_es.get())
+            if error_relativo <= 0:
+                messagebox.showerror("Error", "El valor de εs debe ser mayor que cero.")
+                return
+            elif error_relativo >= 100:
+                messagebox.showerror("Error", "El valor de εs debe ser menor que 100.")
+                return
+        else:
+            cifras = int(entrada_cifras.get())
+            error_relativo = 0.5 * (10 ** (2 - cifras))   
+    except ValueError:
+        messagebox.showerror("Error", "Los valores de la condición de parada y Máx. iter. deben ser numéricos.")
+        return
+    
+    try:
+        coeficientes = []
+        for entrada in entradas:
+            coeficientes.append(float(entrada.get()))
+    except ValueError:
+        messagebox.showerror("Error", "Todos los coeficientes ingresados al polinomio deben ser numéricos.")
+        return
+    
+    def funcion_evaluada(valor):
+        resultado = 0
+        grado = 6
+        for coefiente in coeficientes:
+            resultado += coefiente * (valor ** grado)
+            grado -= 1
+        return resultado
+    
+    def derivada_evaluada(valor):
+        resultado = 0
+        grado = 6
+        for coefiente in coeficientes:
+            if grado > 0:
+                resultado += coefiente * grado * (valor ** (grado - 1))
+            grado -= 1
+        return resultado
+    
+    metodo = metodo_seleccionado.get()
+    error_aproximado = 100.0  
+    iteraciones = 0       
+    punto_medio = 0.0    
+    if metodo == "Bisección":
+        try:
+            xl = float(entrada_xl.get())
+            xu = float(entrada_xu.get())
+        except ValueError:
+            messagebox.showerror("Error", "Los extremos ingresados xl y xu deben ser numéricos.")
+            return
+        fl = funcion_evaluada(xl)
+        fu = funcion_evaluada(xu)
+        if fl * fu > 0:
+            messagebox.showerror("Error", "f(xl) y f(xu) deben tener signos opuestos. El intervalo no encierra la raíz.")
+            return
+        punto_medio = xl
+        while error_aproximado >= error_relativo and iteraciones < iteraciones_maximas:
+            xr_old = punto_medio
+            punto_medio = (xl + xu) / 2.0 
+            fr = funcion_evaluada(punto_medio)
+            iteraciones += 1
+            if punto_medio != 0.0:
+                error_aproximado = abs((punto_medio - xr_old) / punto_medio) * 100.0  
+            if fl * fr < 0.0:
+                xu = punto_medio
+            elif fl * fr > 0.0:
+                xl = punto_medio
+                fl = fr
+            else:
+                error_aproximado = 0.0
+                break
+
+    elif metodo == "Newton-Raphson":
+        try:
+            valor_incial_x0 = float(valor_inicial_x0.get())
+        except ValueError:
+            messagebox.showerror("Error", "x0 debe ser numérico.")
+            return
+        x = valor_incial_x0
+        while error_aproximado >= error_relativo and iteraciones < iteraciones_maximas:
+            x_old = x
+            derivada = derivada_evaluada(x)
+            if abs(derivada) < 1e-14:
+                messagebox.showerror("Error", "Derivada (pendiente) cercana a cero. No se puede continuar con el método de Newton-Raphson.")
+                break
+            x = x - funcion_evaluada(x) / derivada
+            iteraciones += 1
+            if x != 0.0:
+                error_aproximado = abs((x - x_old) / x) * 100.0 
+        punto_medio = x
+
+    elif metodo == "Secante":
+        try:
+            x_menos1 = float(valor_inicial_x_menos1.get())  
+            x0 = float(valor_inicial_x0.get())         
+        except ValueError:
+            messagebox.showerror("Error", "Los valores iniciales deben ser numéricos.")
+            return
+        fmenos1 = funcion_evaluada(x_menos1) 
+        f0 = funcion_evaluada(x0)   
+        x1 = x_menos1 
+        x2 = x0  
+        x_anterior_2 = x_menos1
+        x_anterior_1 = x0
+        f_anterior_2 = funcion_evaluada(x_anterior_2)
+        f_anterior_1 = funcion_evaluada(x_anterior_1)
+        while error_aproximado >= error_relativo and iteraciones < iteraciones_maximas and f_anterior_2 != f_anterior_1:
+            x_nuevo = x_anterior_1 - f_anterior_1 * (x_anterior_2 - x_anterior_1) / (f_anterior_2 - f_anterior_1)
+            iteraciones += 1
+            if x_nuevo != 0.0:
+                error_aproximado = abs((x_nuevo - x_anterior_1) / x_nuevo) * 100.0 
+            x_anterior_2 = x_anterior_1
+            f_anterior_2 = f_anterior_1
+            x_anterior_1 = x_nuevo
+            f_anterior_1 = funcion_evaluada(x_nuevo)
+        punto_medio = x_anterior_1
+    var_raiz.set(punto_medio)
+    var_iter.set(str(iteraciones))
+    var_ea.set(error_aproximado)
+    var_f_raiz.set(funcion_evaluada(punto_medio))  
 
 def alternar_condicion_raiz():
     if parada_seleccionada.get() == "εs (%):":
@@ -44,11 +166,61 @@ def alternar_condicion_raiz():
         entrada_es.config(state="readonly")
         entrada_cifras.config(state="normal")
 
-def metodo_biseccion():
-    print("Método de bisección")
+def cambiar_interfaz_raiz():
+    metodo = metodo_seleccionado.get()
+    if metodo == "Bisección":
+        interfaz_biseccion()
+    elif metodo == "Newton-Raphson":
+        interfaz_newton_raphson()
+    elif metodo == "Secante":
+        interfaz_secante()
+
+def limpiar_parametros_raiz():
+    for elemento in elementos_parametros_raiz:
+        elemento.destroy()
+    elementos_parametros_raiz.clear()
+
+def interfaz_biseccion():
+    global entrada_xl, entrada_xu
+    limpiar_parametros_raiz()
+    titulo_xl = tk.Label(marco_calculo_raiz, text="xl:", font=("Times New Roman", 9))
+    titulo_xl.grid(row=1, column=0, padx=(0, 2), sticky="e")
+    entrada_xl = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+    entrada_xl.grid(row=1, column=1, padx=(0, 10))
+    titulo_xu = tk.Label(marco_calculo_raiz, text="xu:", font=("Times New Roman", 9))
+    titulo_xu.grid(row=1, column=2, padx=(0, 2), sticky="e")
+    entrada_xu = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+    entrada_xu.grid(row=1, column=3, padx=(0, 10))
+    elementos_parametros_raiz.extend([titulo_xl, entrada_xl, titulo_xu, entrada_xu])
+
+def interfaz_newton_raphson():
+    global valor_inicial_x0
+    limpiar_parametros_raiz()
+    titulo_x0 = tk.Label(marco_calculo_raiz, text="x0:", font=("Times New Roman", 9))
+    titulo_x0.grid(row=1, column=0, padx=(0, 2), sticky="e")
+    valor_inicial_x0 = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+    valor_inicial_x0.grid(row=1, column=1, padx=(0, 10))
+    elementos_parametros_raiz.extend([titulo_x0, valor_inicial_x0])
+
+def interfaz_secante():
+    global valor_inicial_x_menos1, valor_inicial_x0
+    limpiar_parametros_raiz()
+    titulo_x_menos1 = tk.Label(marco_calculo_raiz, text="x(-1):", font=("Times New Roman", 9))
+    titulo_x_menos1.grid(row=1, column=0, padx=(0, 2), sticky="e")
+    valor_inicial_x_menos1 = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+    valor_inicial_x_menos1.grid(row=1, column=1, padx=(0, 10))
+    titulo_x0 = tk.Label(marco_calculo_raiz, text="x0:", font=("Times New Roman", 9))
+    titulo_x0.grid(row=1, column=2, padx=(0, 2), sticky="e")
+    valor_inicial_x0 = tk.Entry(marco_calculo_raiz, width=8, justify="center")
+    valor_inicial_x0.grid(row=1, column=3, padx=(0, 10))
+    elementos_parametros_raiz.extend([titulo_x_menos1, valor_inicial_x_menos1, titulo_x0, valor_inicial_x0])
 
 def borrar_coeficientes():                                           
     for entrada in entradas:
+        entrada.delete(0, tk.END)
+    for variable in variables_resultados:
+        variable.set("")
+    for entrada in [entrada_xl, entrada_xu, entrada_es, entrada_cifras, entrada_max_iter]:
         entrada.delete(0, tk.END)
 
 def valores_prueba():
@@ -56,6 +228,20 @@ def valores_prueba():
     for i in range(7):
         entradas[i].delete(0, tk.END)
         entradas[i].insert(0, str(valores[i]))
+    metodo = metodo_seleccionado.get()
+    if metodo == "Bisección":
+        entrada_xl.delete(0, tk.END)
+        entrada_xl.insert(0, "0")
+        entrada_xu.delete(0, tk.END)
+        entrada_xu.insert(0, "1")
+    elif metodo == "Newton-Raphson":
+        valor_inicial_x0.delete(0, tk.END)
+        valor_inicial_x0.insert(0, "0")
+    elif metodo == "Secante":
+        valor_inicial_x_menos1.delete(0, tk.END)
+        valor_inicial_x_menos1.insert(0, "-1")
+        valor_inicial_x0.delete(0, tk.END)
+        valor_inicial_x0.insert(0, "0")
 
 ventana = tk.Tk()                                                  
 ventana.title("Laboratorio VI.1 - Cálculo numérico")   
@@ -89,13 +275,15 @@ titulo_raiz_nombre.pack(anchor="w")
 
 marco_calculo_raiz = tk.Frame(marco_principal)
 marco_calculo_raiz.grid(row=4, column=0, pady=(5, 5), sticky="we")
+elementos_parametros_raiz = []
 metodos = ["Bisección", "Newton-Raphson", "Secante"]
 metodo_seleccionado = tk.StringVar(value=metodos[0]) 
 titulo_metodo = tk.Label(marco_calculo_raiz, text="Método:", font=("Times New Roman", 9))
 titulo_metodo.grid(row=0, column=0, padx=(0, 5))
 for i in range(3):
-    boton_metodo = tk.Radiobutton(marco_calculo_raiz, text=metodos[i], variable=metodo_seleccionado, value=metodos[i],font=("Times New Roman", 9))
+    boton_metodo = tk.Radiobutton(marco_calculo_raiz, text=metodos[i], variable=metodo_seleccionado, value=metodos[i],font=("Times New Roman", 9), command=cambiar_interfaz_raiz)
     boton_metodo.grid(row=0, column=i+1, padx=(0, 2))
+interfaz_biseccion()
 
 var_raiz = tk.StringVar()
 var_iter = tk.StringVar()
