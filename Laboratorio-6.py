@@ -29,7 +29,32 @@ def valores_prueba_sistema():
         entradas_sistema[indice_b][1].insert(0, str(valores_matriz[i][4]))
 
 def calcular_derivada_primera():
-    print("Calcular derivada primera")
+    try:
+        x0 = float(entrada_xcero.get())
+        dx = float(entrada_dx.get())
+    except ValueError:
+        messagebox.showerror("Error", "Los valores de x0 y dx deben ser numéricos.")
+        return
+    try:
+        coeficientes = []
+        for entrada in entradas:
+            coeficientes.append(float(entrada.get()))
+    except ValueError:
+        messagebox.showerror("Error", "Todos los coeficientes ingresados al polinomio deben ser numéricos.")
+        return
+
+    def funcion_evaluada(valor):
+        resultado = 0
+        grado = 6
+        for coefiente in coeficientes:
+            resultado += coefiente * (valor ** grado)
+            grado -= 1
+        return resultado
+    derivada_primera = (funcion_evaluada(x0 + dx) - funcion_evaluada(x0 - dx)) / (2 * dx)
+    resultado_derivada_primera.config(state="normal")
+    resultado_derivada_primera.delete(0, tk.END)
+    resultado_derivada_primera.insert(0, str(round(derivada_primera, 8)))
+    resultado_derivada_primera.config(state="readonly")
 
 def calcular_raiz():
     try:
@@ -151,10 +176,10 @@ def calcular_raiz():
             x_anterior_1 = x_nuevo
             f_anterior_1 = funcion_evaluada(x_nuevo)
         punto_medio = x_anterior_1
-    var_raiz.set(punto_medio)
+    var_raiz.set(str(round(punto_medio, 12)))
     var_iter.set(str(iteraciones))
-    var_ea.set(error_aproximado)
-    var_f_raiz.set(funcion_evaluada(punto_medio))  
+    var_ea.set(str(round(error_aproximado, 12)))
+    var_f_raiz.set(str(round(funcion_evaluada(punto_medio), 12)))  
 
 def alternar_condicion_raiz():
     if parada_seleccionada.get() == "εs (%):":
@@ -220,7 +245,8 @@ def borrar_coeficientes():
         entrada.delete(0, tk.END)
     for variable in variables_resultados:
         variable.set("")
-    for entrada in [entrada_xl, entrada_xu, entrada_es, entrada_cifras, entrada_max_iter]:
+    for entrada in [entrada_xl, entrada_xu, entrada_es, entrada_cifras, entrada_max_iter, 
+                    valor_inicial_x_menos1, valor_inicial_x0, entrada_xcero, entrada_dx]:
         entrada.delete(0, tk.END)
 
 def valores_prueba():
@@ -242,6 +268,11 @@ def valores_prueba():
         valor_inicial_x_menos1.insert(0, "-1")
         valor_inicial_x0.delete(0, tk.END)
         valor_inicial_x0.insert(0, "0")
+    entrada_xcero.delete(0, tk.END)
+    entrada_xcero.insert(0, "1")
+    entrada_dx.delete(0, tk.END)
+    entrada_dx.insert(0, "0.1")
+
 
 ventana = tk.Tk()                                                  
 ventana.title("Laboratorio VI.1 - Cálculo numérico")   
