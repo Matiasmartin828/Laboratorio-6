@@ -10,14 +10,73 @@ def calcular_integral_definida():
     print("Calcular integral definida")
 
 def calcular_sistema():
-    print("Calcular sistema de ecuaciones")
+    matriz_sistema = []
+    for i in range(4):
+        fila = []
+        for j in range(4):
+            try:
+                valor = float(entradas_sistema[j * 4 + i][0].get())
+            except ValueError:
+                messagebox.showerror("Error", "Todos los valores de la matriz deben ser numéricos.")
+                return
+            fila.append(valor)
+        matriz_sistema.append(fila)
+    vector_b = []
+    for i in range(4):
+        try:
+            valor = float(entradas_sistema[12 + i][1].get())
+        except ValueError:
+            messagebox.showerror("Error", "Todos los valores del vector b deben ser numéricos.")
+            return
+        vector_b.append(valor)
+
+    usar_pivoteo = (pivoteo_seleccionado.get() == "Con pivoteo parcial")
+    dimension = 4
+    for columna in range(dimension - 1):
+        if usar_pivoteo:
+            fila = columna
+            for i in range(columna + 1, dimension):
+                if abs(matriz_sistema[i][columna]) > abs(matriz_sistema[fila][columna]):
+                    fila = i
+            if abs(matriz_sistema[fila][columna]) < 1e-14:
+                messagebox.showerror("Error de Sistema", "El sistema es singular o no tiene una solución única.")
+                return
+            if fila != columna:
+                matriz_sistema[columna], matriz_sistema[fila] = matriz_sistema[fila], matriz_sistema[columna]
+                vector_b[columna], vector_b[fila] = vector_b[fila], vector_b[columna]
+        else:
+            if abs(matriz_sistema[columna][columna]) < 1e-14:
+                messagebox.showerror("Error de Pivote", 'Se encontró un pivote nulo. Seleccione "Con pivoteo parcial".')
+                return
+        for k in range(columna + 1, dimension):
+            m = matriz_sistema[k][columna] / matriz_sistema[columna][columna]
+            for j in range(columna, dimension):
+                matriz_sistema[k][j] -= m * matriz_sistema[columna][j]
+            vector_b[k] -= m * vector_b[columna]
+    if abs(matriz_sistema[dimension - 1][dimension - 1]) < 1e-14:
+        messagebox.showerror("Error de Sistema", "El sistema no tiene una solución única (matriz singular).")
+        return
+    resultado_variables = [0.0] * dimension
+    for i in range(dimension - 1, -1, -1):
+        suma = sum(matriz_sistema[i][j] * resultado_variables[j] for j in range(i + 1, dimension))
+        resultado_variables[i] = (vector_b[i] - suma) / matriz_sistema[i][i]
+    for i in range(dimension):
+        entradas_resultados_sistema[i].config(state="normal")
+        entradas_resultados_sistema[i].delete(0, tk.END)
+        entradas_resultados_sistema[i].insert(0, str(round(resultado_variables[i], 8)))
+        entradas_resultados_sistema[i].config(state="readonly")
 
 def borrar_valores_sistema():
     for entrada in entradas_sistema:
         entrada[0].delete(0, tk.END)
         entrada[1].delete(0, tk.END)
+    for entrada in entradas_resultados_sistema:
+        entrada.config(state="normal")
+        entrada.delete(0, tk.END)
+        entrada.config(state="readonly")
 
 def valores_prueba_sistema():
+    borrar_valores_sistema()
     valores_matriz = [[2, 2, 1, -1, 5], [2, -2, 6, -4, 0], [2, 2, 1, 1, 13], [1, 5, -4, -2, -9]]
     for i in range(4):      
         for j in range(4): 
@@ -240,16 +299,32 @@ def interfaz_secante():
     valor_inicial_x0.grid(row=1, column=3, padx=(0, 10))
     elementos_parametros_raiz.extend([titulo_x_menos1, valor_inicial_x_menos1, titulo_x0, valor_inicial_x0])
 
-def borrar_coeficientes():                                           
+def borrar_valores_prueba_polinomio():                                           
     for entrada in entradas:
         entrada.delete(0, tk.END)
     for variable in variables_resultados:
         variable.set("")
-    for entrada in [entrada_xl, entrada_xu, entrada_es, entrada_cifras, entrada_max_iter, 
-                    valor_inicial_x_menos1, valor_inicial_x0, entrada_xcero, entrada_dx]:
-        entrada.delete(0, tk.END)
-
+    for entrada in [entrada_es, entrada_cifras, entrada_max_iter, entrada_dx, entrada_a, 
+                    entrada_b, entrada_cantidad_subintervalos, entrada_xcero]:
+                    entrada.delete(0, tk.END)
+    resultado_derivada_primera.config(state="normal")
+    resultado_derivada_primera.delete(0, tk.END)     
+    resultado_derivada_primera.config(state="readonly")
+    resultado_integral.config(state="normal")
+    resultado_integral.delete(0, tk.END)     
+    resultado_integral.config(state="readonly")            
+    metodo = metodo_seleccionado.get()
+    if metodo == "Bisección":
+        entrada_xl.delete(0, tk.END)
+        entrada_xu.delete(0, tk.END)
+    elif metodo == "Newton-Raphson":
+        valor_inicial_x0.delete(0, tk.END)
+    elif metodo == "Secante":
+        valor_inicial_x_menos1.delete(0, tk.END)
+        valor_inicial_x0.delete(0, tk.END)
+    
 def valores_prueba():
+    borrar_valores_prueba_polinomio()
     valores = [0, 1, 0, -8, 0, 82, -25]
     for i in range(7):
         entradas[i].delete(0, tk.END)
@@ -272,7 +347,12 @@ def valores_prueba():
     entrada_xcero.insert(0, "1")
     entrada_dx.delete(0, tk.END)
     entrada_dx.insert(0, "0.1")
-
+    entrada_a.delete(0, tk.END)
+    entrada_a.insert(0, "0")
+    entrada_b.delete(0, tk.END)
+    entrada_b.insert(0, "2")
+    entrada_cantidad_subintervalos.delete(0, tk.END)
+    entrada_cantidad_subintervalos.insert(0, "2")
 
 ventana = tk.Tk()                                                  
 ventana.title("Laboratorio VI.1 - Cálculo numérico")   
@@ -287,7 +367,7 @@ subtitulo.grid(row=1, column=0)
 marco_coeficientes = tk.Frame(marco_principal)
 marco_coeficientes.grid(row=2, column=0, pady=10)
 tk.Label(marco_coeficientes,text="Coeficientes\ndel polinomio", justify="left",font=("Time new roman", 9)).grid(row=0, column=0, rowspan=2, padx=(0, 10))
-boton_borrar = tk.Button(marco_coeficientes, text="Borrar valores", command=borrar_coeficientes, font=("Time new roman", 9), width=15)
+boton_borrar = tk.Button(marco_coeficientes, text="Borrar valores", command=borrar_valores_prueba_polinomio, font=("Time new roman", 9), width=15)
 boton_borrar.grid(row=0, column=8, pady=(0, 5), padx=(8, 0))
 boton_valores_prueba = tk.Button(marco_coeficientes, text="Valores de prueba", command=valores_prueba, font=("Time new roman", 9), width=15)
 boton_valores_prueba.grid(row=1, column=8, pady=(5, 0), padx=(8, 0))
@@ -399,12 +479,14 @@ boton_borrar_sistema = tk.Button(marco_entradas_sistema, text="Borrar valores", 
 boton_borrar_sistema.grid(row=3, column=6, padx=(10, 2), pady=(2, 0))
 boton_valores_prueba_sistema = tk.Button(marco_entradas_sistema, text="Valores de prueba", font=("Times New Roman", 9), width=12, command=valores_prueba_sistema)
 boton_valores_prueba_sistema.grid(row=4, column=6, padx=(10, 2), pady=(2, 0))
+entradas_resultados_sistema = []
 titulos_resultados_sistema = ["x1 =", "x2 =", "x3 =", "x4 ="]
 for i in range(0, 4):
     titulo_resultado = tk.Label(marco_entradas_sistema, text=titulos_resultados_sistema[i], font=("Times New Roman", 9))
     titulo_resultado.grid(row=i, column=7, padx=(50, 2), pady=(2, 2))
     resultado_sistema = tk.Entry(marco_entradas_sistema, state="readonly", width=15)
     resultado_sistema.grid(row=i, column=8, padx=(5, 5), pady=(2, 2))
+    entradas_resultados_sistema.append(resultado_sistema)
 
 titulo_calculo_integral_definida = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)
 titulo_calculo_integral_definida.grid(row=9, column=0, sticky="we", pady=(5, 0))
