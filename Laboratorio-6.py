@@ -6,11 +6,50 @@ import tkinter as tk                                                #Librerías
 from tkinter import messagebox
 import math
 
-def calcular_integral_definida():
-    print("Calcular integral definida")
+def calcular_integral_definida():                                                           #Función que calcula la integral definida con el 
+    try:                                                                                    #método Simpson 1/3 compuesta
+        a = float(entrada_a.get())
+        b = float(entrada_b.get())
+        n = int(entrada_cantidad_subintervalos.get())
+        if n <= 0 or n % 2 != 0:                                                            #Condiciones de error para n
+            messagebox.showerror("Error", "La cantidad de subintervalos (n) debe ser un número entero par y mayor a cero.")
+            return
+    except ValueError:
+        messagebox.showerror("Error", "Los valores de a, b y n deben ser numéricos. Además n debe ser entero.")
+        return
+    try:
+        coeficientes = []
+        for entrada in entradas:
+            coeficientes.append(float(entrada.get()))
+    except ValueError:
+        messagebox.showerror("Error", "Todos los coeficientes ingresados al polinomio deben ser numéricos.")
+        return
 
-def calcular_sistema():
-    matriz_sistema = []
+    def funcion_evaluada(valor):                            
+        resultado = 0
+        grado = 6
+        for coefiente in coeficientes:
+            resultado += coefiente * (valor ** grado)
+            grado -= 1
+        return resultado
+
+    h = (b - a) / n 
+    suma_impares = 0
+    for i in range(1, n, 2):
+        suma_impares += funcion_evaluada(a + i * h)
+        
+    suma_pares = 0
+    for j in range(2, n, 2):
+        suma_pares += funcion_evaluada(a + j * h)
+
+    integral = (h / 3.0) * (funcion_evaluada(a) + 4.0 * suma_impares + 2.0 * suma_pares + funcion_evaluada(b))
+    resultado_integral.config(state="normal")
+    resultado_integral.delete(0, tk.END)
+    resultado_integral.insert(0, str(round(integral, 8)))
+    resultado_integral.config(state="readonly")
+
+def calcular_sistema():                                                                     #Función que resuelve las variables del sistema de 
+    matriz_sistema = []                                                                     #ecuaciones
     for i in range(4):
         fila = []
         for j in range(4):
@@ -30,7 +69,7 @@ def calcular_sistema():
             return
         vector_b.append(valor)
 
-    usar_pivoteo = (pivoteo_seleccionado.get() == "Con pivoteo parcial")
+    usar_pivoteo = (pivoteo_seleccionado.get() == "Con pivoteo parcial")                    
     dimension = 4
     for columna in range(dimension - 1):
         if usar_pivoteo:
@@ -66,8 +105,8 @@ def calcular_sistema():
         entradas_resultados_sistema[i].insert(0, str(round(resultado_variables[i], 8)))
         entradas_resultados_sistema[i].config(state="readonly")
 
-def borrar_valores_sistema():
-    for entrada in entradas_sistema:
+def borrar_valores_sistema():                                                               #Función que borra los valores ingresados y resultados  
+    for entrada in entradas_sistema:                                                        #al sistema de ecuaciones
         entrada[0].delete(0, tk.END)
         entrada[1].delete(0, tk.END)
     for entrada in entradas_resultados_sistema:
@@ -75,8 +114,8 @@ def borrar_valores_sistema():
         entrada.delete(0, tk.END)
         entrada.config(state="readonly")
 
-def valores_prueba_sistema():
-    borrar_valores_sistema()
+def valores_prueba_sistema():                                                               #Función que define los valores de prueba del sistema
+    borrar_valores_sistema()                                                                #de ecuaciones y el vector b
     valores_matriz = [[2, 2, 1, -1, 5], [2, -2, 6, -4, 0], [2, 2, 1, 1, 13], [1, 5, -4, -2, -9]]
     for i in range(4):      
         for j in range(4): 
@@ -87,7 +126,7 @@ def valores_prueba_sistema():
         entradas_sistema[indice_b][1].delete(0, tk.END)
         entradas_sistema[indice_b][1].insert(0, str(valores_matriz[i][4]))
 
-def calcular_derivada_primera():
+def calcular_derivada_primera():                                                            #Función para calcular la derivada primera con diferencia centrada
     try:
         x0 = float(entrada_xcero.get())
         dx = float(entrada_dx.get())
@@ -102,7 +141,7 @@ def calcular_derivada_primera():
         messagebox.showerror("Error", "Todos los coeficientes ingresados al polinomio deben ser numéricos.")
         return
 
-    def funcion_evaluada(valor):
+    def funcion_evaluada(valor):                            
         resultado = 0
         grado = 6
         for coefiente in coeficientes:
@@ -115,10 +154,10 @@ def calcular_derivada_primera():
     resultado_derivada_primera.insert(0, str(round(derivada_primera, 8)))
     resultado_derivada_primera.config(state="readonly")
 
-def calcular_raiz():
+def calcular_raiz():                                                                        #Función para calcular la raíz
     try:
-        iteraciones_maximas = int(entrada_max_iter.get())
-        if parada_seleccionada.get() == "εs (%):":
+        iteraciones_maximas = int(entrada_max_iter.get())                                   #Compruebo si los valores ingresados para condición de parada
+        if parada_seleccionada.get() == "εs (%):":                                          #son correctos
             error_relativo = float(entrada_es.get())
             if error_relativo <= 0:
                 messagebox.showerror("Error", "El valor de εs debe ser mayor que cero.")
@@ -133,15 +172,15 @@ def calcular_raiz():
         messagebox.showerror("Error", "Los valores de la condición de parada y Máx. iter. deben ser numéricos.")
         return
     
-    try:
-        coeficientes = []
-        for entrada in entradas:
+    try:                                                
+        coeficientes = []                                                                   #Compruebo si los coeficientes ingresados al polinomio
+        for entrada in entradas:                                                            #son correctos
             coeficientes.append(float(entrada.get()))
     except ValueError:
         messagebox.showerror("Error", "Todos los coeficientes ingresados al polinomio deben ser numéricos.")
         return
     
-    def funcion_evaluada(valor):
+    def funcion_evaluada(valor):                                                            #Función en donde evalúo el polinomio en un valor
         resultado = 0
         grado = 6
         for coefiente in coeficientes:
@@ -149,8 +188,8 @@ def calcular_raiz():
             grado -= 1
         return resultado
     
-    def derivada_evaluada(valor):
-        resultado = 0
+    def derivada_evaluada(valor):                                                           #Función en donde evalúo la derivada del polinomio
+        resultado = 0                                                                       #en un valor
         grado = 6
         for coefiente in coeficientes:
             if grado > 0:
@@ -162,7 +201,7 @@ def calcular_raiz():
     error_aproximado = 100.0  
     iteraciones = 0       
     punto_medio = 0.0    
-    if metodo == "Bisección":
+    if metodo == "Bisección":                                                               #Método de bisección
         try:
             xl = float(entrada_xl.get())
             xu = float(entrada_xu.get())
@@ -191,7 +230,7 @@ def calcular_raiz():
                 error_aproximado = 0.0
                 break
 
-    elif metodo == "Newton-Raphson":
+    elif metodo == "Newton-Raphson":                                                        #Método Newton-Raphson
         try:
             valor_incial_x0 = float(valor_inicial_x0.get())
         except ValueError:
@@ -210,7 +249,7 @@ def calcular_raiz():
                 error_aproximado = abs((x - x_old) / x) * 100.0 
         punto_medio = x
 
-    elif metodo == "Secante":
+    elif metodo == "Secante":                                                               #Método secante
         try:
             x_menos1 = float(valor_inicial_x_menos1.get())  
             x0 = float(valor_inicial_x0.get())         
@@ -235,13 +274,14 @@ def calcular_raiz():
             x_anterior_1 = x_nuevo
             f_anterior_1 = funcion_evaluada(x_nuevo)
         punto_medio = x_anterior_1
-    var_raiz.set(str(round(punto_medio, 12)))
+
+    var_raiz.set(str(round(punto_medio, 12)))                                               #Actualizo los resultados finales en la interfaz, redondeados a 12 decimales            
     var_iter.set(str(iteraciones))
     var_ea.set(str(round(error_aproximado, 12)))
     var_f_raiz.set(str(round(funcion_evaluada(punto_medio), 12)))  
 
-def alternar_condicion_raiz():
-    if parada_seleccionada.get() == "εs (%):":
+def alternar_condicion_raiz():                                                              #Función para alternar la condición de parada
+    if parada_seleccionada.get() == "εs (%):":                                              #seleccionada por el usuario
         entrada_es.config(state="normal")
         entrada_cifras.delete(0, tk.END)
         entrada_cifras.config(state="readonly")
@@ -250,8 +290,8 @@ def alternar_condicion_raiz():
         entrada_es.config(state="readonly")
         entrada_cifras.config(state="normal")
 
-def cambiar_interfaz_raiz():
-    metodo = metodo_seleccionado.get()
+def cambiar_interfaz_raiz():                                                                #Función para saber en que método estoy y cual
+    metodo = metodo_seleccionado.get()                                                      #interfaz seteo
     if metodo == "Bisección":
         interfaz_biseccion()
     elif metodo == "Newton-Raphson":
@@ -259,14 +299,14 @@ def cambiar_interfaz_raiz():
     elif metodo == "Secante":
         interfaz_secante()
 
-def limpiar_parametros_raiz():
-    for elemento in elementos_parametros_raiz:
+def limpiar_parametros_raiz():                                                              #Limpio los parámetros presentes para cambiarlos
+    for elemento in elementos_parametros_raiz:                                              #por los necesarios para el método seleccionado
         elemento.destroy()
     elementos_parametros_raiz.clear()
 
-def interfaz_biseccion():
-    global entrada_xl, entrada_xu
-    limpiar_parametros_raiz()
+def interfaz_biseccion():                                                                   #Cambio la interfaz para pedir al usuario los
+    global entrada_xl, entrada_xu                                                           #valores necesarios para usar el método bisección
+    limpiar_parametros_raiz()                                                               #para el cálculo de la raíz
     titulo_xl = tk.Label(marco_calculo_raiz, text="xl:", font=("Times New Roman", 9))
     titulo_xl.grid(row=1, column=0, padx=(0, 2), sticky="e")
     entrada_xl = tk.Entry(marco_calculo_raiz, width=8, justify="center")
@@ -277,18 +317,18 @@ def interfaz_biseccion():
     entrada_xu.grid(row=1, column=3, padx=(0, 10))
     elementos_parametros_raiz.extend([titulo_xl, entrada_xl, titulo_xu, entrada_xu])
 
-def interfaz_newton_raphson():
-    global valor_inicial_x0
-    limpiar_parametros_raiz()
+def interfaz_newton_raphson():                                                              #Cambio la interfaz para pedir al usuario los
+    global valor_inicial_x0                                                                 #valores necesarios para usar el método Newton-
+    limpiar_parametros_raiz()                                                               #Raphson para el cálculo de la raíz
     titulo_x0 = tk.Label(marco_calculo_raiz, text="x0:", font=("Times New Roman", 9))
     titulo_x0.grid(row=1, column=0, padx=(0, 2), sticky="e")
     valor_inicial_x0 = tk.Entry(marco_calculo_raiz, width=8, justify="center")
     valor_inicial_x0.grid(row=1, column=1, padx=(0, 10))
     elementos_parametros_raiz.extend([titulo_x0, valor_inicial_x0])
 
-def interfaz_secante():
-    global valor_inicial_x_menos1, valor_inicial_x0
-    limpiar_parametros_raiz()
+def interfaz_secante():                                                                     #Cambio la interfaz para pedir al usuario los 
+    global valor_inicial_x_menos1, valor_inicial_x0                                         #valores necesarios para usar el método secante
+    limpiar_parametros_raiz()                                                               #para el cálculo de la raíz
     titulo_x_menos1 = tk.Label(marco_calculo_raiz, text="x(-1):", font=("Times New Roman", 9))
     titulo_x_menos1.grid(row=1, column=0, padx=(0, 2), sticky="e")
     valor_inicial_x_menos1 = tk.Entry(marco_calculo_raiz, width=8, justify="center")
@@ -299,8 +339,8 @@ def interfaz_secante():
     valor_inicial_x0.grid(row=1, column=3, padx=(0, 10))
     elementos_parametros_raiz.extend([titulo_x_menos1, valor_inicial_x_menos1, titulo_x0, valor_inicial_x0])
 
-def borrar_valores_prueba_polinomio():                                           
-    for entrada in entradas:
+def borrar_valores_prueba_polinomio():                                                      #Función que borra los valores ingresados y los 
+    for entrada in entradas:                                                                #resultados
         entrada.delete(0, tk.END)
     for variable in variables_resultados:
         variable.set("")
@@ -323,11 +363,11 @@ def borrar_valores_prueba_polinomio():
         valor_inicial_x_menos1.delete(0, tk.END)
         valor_inicial_x0.delete(0, tk.END)
     
-def valores_prueba():
-    borrar_valores_prueba_polinomio()
-    valores = [0, 1, 0, -8, 0, 82, -25]
-    for i in range(7):
-        entradas[i].delete(0, tk.END)
+def valores_prueba():                                                                           #Función que escribe los valores de prueba de los 
+    borrar_valores_prueba_polinomio()                                                           #coeficientes del polinomio, límites para el cálculo
+    valores = [0, 1, 0, -8, 0, 82, -25]                                                         #de la raíz dependiendo el método seleccionado y  
+    for i in range(7):                                                                          #límites y cantidad n de subintervalos para el 
+        entradas[i].delete(0, tk.END)                                                           #cálculo de la integral
         entradas[i].insert(0, str(valores[i]))
     metodo = metodo_seleccionado.get()
     if metodo == "Bisección":
@@ -354,7 +394,7 @@ def valores_prueba():
     entrada_cantidad_subintervalos.delete(0, tk.END)
     entrada_cantidad_subintervalos.insert(0, "2")
 
-ventana = tk.Tk()                                                  
+ventana = tk.Tk()                                                                                                                               
 ventana.title("Laboratorio VI.1 - Cálculo numérico")   
 ventana.geometry("750x700")
 marco_principal = tk.Frame(ventana, padx=5, pady=5)                                       
@@ -364,7 +404,7 @@ titulo.grid(row=0, column=0)
 subtitulo = tk.Label(marco_principal,text="Cálculo de raíces, derivadas, sistema de ecuaciones e integrales", font=("Time new roman", 9))
 subtitulo.grid(row=1, column=0)
 
-marco_coeficientes = tk.Frame(marco_principal)
+marco_coeficientes = tk.Frame(marco_principal)                                                                                                                  #Zona del polinomio
 marco_coeficientes.grid(row=2, column=0, pady=10)
 tk.Label(marco_coeficientes,text="Coeficientes\ndel polinomio", justify="left",font=("Time new roman", 9)).grid(row=0, column=0, rowspan=2, padx=(0, 10))
 boton_borrar = tk.Button(marco_coeficientes, text="Borrar valores", command=borrar_valores_prueba_polinomio, font=("Time new roman", 9), width=15)
@@ -379,7 +419,7 @@ for i in range(7):
     etiqueta.grid(row=1, column=i+1)
     entradas.append(entrada)
 
-titulo_raiz = tk.LabelFrame(marco_principal,text="",padx=10,pady=5,width=650)
+titulo_raiz = tk.LabelFrame(marco_principal,text="",padx=10,pady=5,width=650)                                                                                   #Zona del cálculo de la raíz                                                                                                
 titulo_raiz.grid(row=3, column=0, sticky="we", pady=(5, 0))
 titulo_raiz_nombre = tk.Label(titulo_raiz,text="Cálculo de una raíz", font=("Times New Roman", 12, "bold"))
 titulo_raiz_nombre.pack(anchor="w")
@@ -426,7 +466,7 @@ titulo_max_iteraciones.grid(row=3, column=4, padx=(0, 2), sticky="e")
 entrada_max_iter = tk.Entry(marco_calculo_raiz, width=8, justify="center")
 entrada_max_iter.grid(row=3, column=5, padx=(0, 2))
 
-titulo_derivada = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)
+titulo_derivada = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)                                                                           #Zona cálculo de la derivada primera
 titulo_derivada.grid(row=5, column=0, sticky="we", pady=(5, 0))
 titulo_calculo_derivada_primera = tk.Label(titulo_derivada, text="Cálculo de la derivada primera (diferencia centrada)", font=("Times New Roman", 12, "bold"))
 titulo_calculo_derivada_primera.pack(anchor="w")
@@ -447,7 +487,7 @@ titulo_resultado_derivada_primera.grid(row=0, column=5, padx=(5, 5))
 resultado_derivada_primera = tk.Entry(marco_entradas_derivada, state="readonly", width=15)
 resultado_derivada_primera.grid(row=0, column=6)
 
-titulo_resolucion_sistema = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)
+titulo_resolucion_sistema = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)                                                                 #Zona resolución de un sistema de 4 ecuaciones con eliminación gaussiana
 titulo_resolucion_sistema.grid(row=7, column=0, sticky="we", pady=(5, 0))
 titulo_calculo_resolucion_sistema = tk.Label(titulo_resolucion_sistema, text="Resolución de un sistema de 4 ecuaciones (eliminación gaussiana)", font=("Times New Roman", 12, "bold"))
 titulo_calculo_resolucion_sistema.pack(anchor="w")
@@ -488,7 +528,7 @@ for i in range(0, 4):
     resultado_sistema.grid(row=i, column=8, padx=(5, 5), pady=(2, 2))
     entradas_resultados_sistema.append(resultado_sistema)
 
-titulo_calculo_integral_definida = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)
+titulo_calculo_integral_definida = tk.LabelFrame(marco_principal, text="", padx=10, pady=5, width=650)                                                          #Zona cálculo de la integral definica con método Simpson 1/3 compuesta
 titulo_calculo_integral_definida.grid(row=9, column=0, sticky="we", pady=(5, 0))
 titulo_texto_calculo_integral_definida = tk.Label(titulo_calculo_integral_definida, text="Cálculo de la integral definida (Simpson 1/3 compuesta)", font=("Times New Roman", 12, "bold"))
 titulo_texto_calculo_integral_definida.pack(anchor="w")
